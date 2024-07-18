@@ -1,5 +1,11 @@
 package Client.services;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.exceptions.JWTDecodeException;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import org.json.simple.JSONObject;
+
+import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -55,6 +61,28 @@ public class ClientCrud {
         return null;
     }
 
+    public Client getClient(String token) {
+        DecodedJWT jwt = JWT.decode(token);
+
+        if (jwt == null || jwt.getClaim("id") == null || jwt.getClaim("id").asString() == null) {
+            // Token inválido ou ausente do ID do cliente
+            return null;
+        }
+
+        String idStr = jwt.getClaim("id").asString();
+
+        // Converta o ID do cliente para inteiro
+        int id;
+        try {
+            id = Integer.parseInt(idStr);
+        } catch (NumberFormatException e) {
+            // Formato inválido do ID
+            return null;
+        }
+
+        // Busque o cliente pelo ID
+        return readClientID(id);
+    }
     public boolean addClient(Client client) {
         Statement state;
 
@@ -72,6 +100,7 @@ public class ClientCrud {
             } else {
                 System.out.println("Failed to add client!");
             }
+
 
             state.close();
             dataConnection.closeConnection();
@@ -106,6 +135,47 @@ public class ClientCrud {
         }
         return null;
     }
+
+    public Client getClientByID(int id) {
+        return readClientID(id);
+    }
+
+    public Client getClientByEmail(String email) {
+        Statement state;
+        ResultSet result;
+
+        try {
+            state = dataConnection.getConnection().createStatement();
+            String query = "SELECT * FROM client WHERE email = '" + email + "'";
+            result = state.executeQuery(query);
+
+            if (result.next()) {
+                Client client = new Client(result.getInt("id"),
+                        result.getString("name"),
+                        result.getString("email"),
+                        result.getString("password"));
+                return client;
+            }
+
+            result.close();
+            state.close();
+        } catch (SQLException e) {
+            System.out.println(e.toString());
+        }
+
+        return null;
+    }
+
+    private void sendResponse(PrintWriter writer, String status, JSONObject data, String operation) {
+        JSONObject response = new JSONObject();
+        response.put("operation", operation);
+        response.put("status", status);
+        response.put("data", data);
+        writer.println(response.toJSONString());
+
+        System.out.println("Response: " + response.toJSONString());
+    }
+
 
     public Client readClientID(int id) {
         Statement state;

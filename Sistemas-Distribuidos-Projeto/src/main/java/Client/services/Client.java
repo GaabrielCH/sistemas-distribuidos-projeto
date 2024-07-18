@@ -1,5 +1,7 @@
 package Client.services;
 
+import org.json.simple.JSONObject;
+
 import java.io.Serializable;
 
 public class Client implements Serializable{
@@ -19,12 +21,28 @@ public class Client implements Serializable{
         this.password = password;
     }
 
+    public Client() {
+        this.id = 0;
+        this.name = "";
+        this.email = "";
+        this.password = "";
+        // Inicialize todos os outros campos com valores padrão
+    }
+
     public int getId() {
         return id;
     }
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getEmail() {
@@ -37,14 +55,6 @@ public class Client implements Serializable{
 
     public String getPassword() {
         return password;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public void setPassword(String password) {
